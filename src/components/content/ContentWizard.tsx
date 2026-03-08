@@ -83,6 +83,9 @@ export default function ContentWizard({ projectId, onDone, editingPieceId }: Pro
   const [loadingDraft, setLoadingDraft] = useState(false);
   const [seoScore, setSeoScore] = useState(0);
   const [contentPieceId, setContentPieceId] = useState<string | null>(editingPieceId ?? null);
+  const [loadingBriefing, setLoadingBriefing] = useState(false);
+  const [briefing, setBriefing] = useState('');
+  const [publishingWp, setPublishingWp] = useState(false);
 
   useEffect(() => {
     const load = async () => {
