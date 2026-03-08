@@ -17,6 +17,7 @@ export function AppLayout({ children }: { children: ReactNode }) {
           <header className="h-14 flex items-center justify-between border-b border-border px-4">
             <SidebarTrigger className="text-muted-foreground" />
             <div className="flex items-center gap-3">
+              <AlertsBell />
               <span className="text-sm text-muted-foreground hidden sm:block">{user?.email}</span>
               <Avatar className="h-8 w-8">
                 <AvatarFallback className="bg-primary/20 text-primary text-xs">{initials}</AvatarFallback>
