@@ -3,6 +3,7 @@ import { SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
 import { AppSidebar } from '@/components/AppSidebar';
 import { useAuth } from '@/contexts/AuthContext';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { AlertsBell } from '@/components/AlertsBell';
 
 export function AppLayout({ children }: { children: ReactNode }) {
   const { user } = useAuth();
