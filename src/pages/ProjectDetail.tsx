@@ -10,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Label } from '@/components/ui/label';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { ArrowLeft, Plus, Search, MapPin, Globe, Trash2, Rocket, Eye, BarChart3, FileText } from 'lucide-react';
+import { ArrowLeft, Plus, Search, MapPin, Globe, Trash2, Rocket, Eye, BarChart3, FileText, Activity } from 'lucide-react';
 import { toast } from 'sonner';
 
 type SourceType = 'main' | 'related' | 'suggestion' | 'idea' | 'autocomplete' | 'subtopic' | 'paa';
