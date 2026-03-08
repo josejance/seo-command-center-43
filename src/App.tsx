@@ -20,6 +20,7 @@ import ProjectContentStudio from "./pages/ProjectContentStudio";
 import Monitoring from "./pages/Monitoring";
 import ProjectMonitoring from "./pages/ProjectMonitoring";
 import SettingsPage from "./pages/SettingsPage";
+import ProjectAutomation from "./pages/ProjectAutomation";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
