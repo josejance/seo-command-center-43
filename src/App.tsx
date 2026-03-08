@@ -20,6 +20,7 @@ import ProjectContentStudio from "./pages/ProjectContentStudio";
 import Monitoring from "./pages/Monitoring";
 import ProjectMonitoring from "./pages/ProjectMonitoring";
 import SettingsPage from "./pages/SettingsPage";
+import ProjectAutomation from "./pages/ProjectAutomation";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -54,6 +55,7 @@ const AppRoutes = () => (
     <Route path="/projects/:id/content" element={<ProtectedRoute><ProjectContentStudio /></ProtectedRoute>} />
     <Route path="/content" element={<ProtectedRoute><Content /></ProtectedRoute>} />
     <Route path="/projects/:id/monitor" element={<ProtectedRoute><ProjectMonitoring /></ProtectedRoute>} />
+    <Route path="/projects/:id/automation" element={<ProtectedRoute><ProjectAutomation /></ProtectedRoute>} />
     <Route path="/monitoring" element={<ProtectedRoute><Monitoring /></ProtectedRoute>} />
     <Route path="/settings" element={<ProtectedRoute><SettingsPage /></ProtectedRoute>} />
     <Route path="*" element={<NotFound />} />
