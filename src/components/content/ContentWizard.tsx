@@ -580,13 +580,23 @@ export default function ContentWizard({ projectId, onDone, editingPieceId }: Pro
             </div>
           </div>
 
-          <div className="flex justify-between">
+          <div className="flex justify-between flex-wrap gap-2">
             <Button variant="outline" onClick={() => setStep(3)}>
               <ChevronLeft className="mr-2 h-4 w-4" /> Voltar
             </Button>
-            <Button onClick={handleFinalize} className="gradient-primary text-primary-foreground">
-              Finalizar Conteúdo
-            </Button>
+            <div className="flex gap-2 flex-wrap">
+              <Button variant="outline" onClick={handleGenerateBriefing} disabled={loadingBriefing}>
+                {loadingBriefing ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <FileText className="mr-2 h-4 w-4" />}
+                Gerar Briefing
+              </Button>
+              <Button variant="outline" onClick={handlePublishWordPress} disabled={publishingWp || !draft}>
+                {publishingWp ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Globe className="mr-2 h-4 w-4" />}
+                Publicar no WordPress
+              </Button>
+              <Button onClick={handleFinalize} className="gradient-primary text-primary-foreground">
+                Finalizar Conteúdo
+              </Button>
+            </div>
           </div>
         </div>
       )}
