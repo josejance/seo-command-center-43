@@ -14,6 +14,54 @@ export type Database = {
   }
   public: {
     Tables: {
+      alerts: {
+        Row: {
+          created_at: string
+          id: string
+          keyword_id: string | null
+          message: string
+          project_id: string
+          read: boolean
+          severity: Database["public"]["Enums"]["alert_severity"]
+          type: Database["public"]["Enums"]["alert_type"]
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          keyword_id?: string | null
+          message: string
+          project_id: string
+          read?: boolean
+          severity?: Database["public"]["Enums"]["alert_severity"]
+          type: Database["public"]["Enums"]["alert_type"]
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          keyword_id?: string | null
+          message?: string
+          project_id?: string
+          read?: boolean
+          severity?: Database["public"]["Enums"]["alert_severity"]
+          type?: Database["public"]["Enums"]["alert_type"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "alerts_keyword_id_fkey"
+            columns: ["keyword_id"]
+            isOneToOne: false
+            referencedRelation: "keywords"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "alerts_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       app_settings: {
         Row: {
           id: string
@@ -128,6 +176,7 @@ export type Database = {
           id: string
           keyword: string
           keyword_difficulty: number | null
+          monitored: boolean
           parent_keyword_id: string | null
           project_id: string
           search_intent: string | null
@@ -142,6 +191,7 @@ export type Database = {
           id?: string
           keyword: string
           keyword_difficulty?: number | null
+          monitored?: boolean
           parent_keyword_id?: string | null
           project_id: string
           search_intent?: string | null
@@ -156,6 +206,7 @@ export type Database = {
           id?: string
           keyword?: string
           keyword_difficulty?: number | null
+          monitored?: boolean
           parent_keyword_id?: string | null
           project_id?: string
           search_intent?: string | null
@@ -233,6 +284,41 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      rank_history: {
+        Row: {
+          checked_at: string
+          domain: string | null
+          id: string
+          keyword_id: string
+          position: number | null
+          url: string | null
+        }
+        Insert: {
+          checked_at?: string
+          domain?: string | null
+          id?: string
+          keyword_id: string
+          position?: number | null
+          url?: string | null
+        }
+        Update: {
+          checked_at?: string
+          domain?: string | null
+          id?: string
+          keyword_id?: string
+          position?: number | null
+          url?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "rank_history_keyword_id_fkey"
+            columns: ["keyword_id"]
+            isOneToOne: false
+            referencedRelation: "keywords"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       research_history: {
         Row: {
@@ -334,6 +420,12 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
+      alert_severity: "low" | "medium" | "high" | "critical"
+      alert_type:
+        | "rank_drop"
+        | "rank_improvement"
+        | "new_competitor"
+        | "keyword_trend"
       content_status: "outline" | "draft" | "review" | "final" | "published"
       keyword_source_type:
         | "main"
@@ -477,6 +569,13 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      alert_severity: ["low", "medium", "high", "critical"],
+      alert_type: [
+        "rank_drop",
+        "rank_improvement",
+        "new_competitor",
+        "keyword_trend",
+      ],
       content_status: ["outline", "draft", "review", "final", "published"],
       keyword_source_type: [
         "main",
