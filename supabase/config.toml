@@ -17,3 +17,6 @@ verify_jwt = false
 
 [functions.research-subtopics]
 verify_jwt = false
+
+[functions.keyword-summary]
+verify_jwt = false
