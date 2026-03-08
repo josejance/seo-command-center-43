@@ -86,6 +86,51 @@ export type Database = {
         }
         Relationships: []
       }
+      automation_logs: {
+        Row: {
+          action: string
+          created_at: string
+          details: Json | null
+          id: string
+          project_id: string
+          schedule_id: string | null
+          status: string
+        }
+        Insert: {
+          action: string
+          created_at?: string
+          details?: Json | null
+          id?: string
+          project_id: string
+          schedule_id?: string | null
+          status?: string
+        }
+        Update: {
+          action?: string
+          created_at?: string
+          details?: Json | null
+          id?: string
+          project_id?: string
+          schedule_id?: string | null
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "automation_logs_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "automation_logs_schedule_id_fkey"
+            columns: ["schedule_id"]
+            isOneToOne: false
+            referencedRelation: "schedules"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       content_pieces: {
         Row: {
           created_at: string
@@ -231,6 +276,44 @@ export type Database = {
           },
         ]
       }
+      pipeline_configs: {
+        Row: {
+          active: boolean
+          created_at: string
+          id: string
+          min_score: number
+          name: string
+          project_id: string
+          steps: Json
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          id?: string
+          min_score?: number
+          name?: string
+          project_id: string
+          steps?: Json
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          id?: string
+          min_score?: number
+          name?: string
+          project_id?: string
+          steps?: Json
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pipeline_configs_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -358,6 +441,56 @@ export type Database = {
           },
           {
             foreignKeyName: "research_history_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      schedules: {
+        Row: {
+          active: boolean
+          apis: Json
+          created_at: string
+          frequency: string
+          id: string
+          keywords: Json
+          last_run: string | null
+          next_run: string | null
+          project_id: string
+          schedule_day: number | null
+          schedule_time: string | null
+        }
+        Insert: {
+          active?: boolean
+          apis?: Json
+          created_at?: string
+          frequency?: string
+          id?: string
+          keywords?: Json
+          last_run?: string | null
+          next_run?: string | null
+          project_id: string
+          schedule_day?: number | null
+          schedule_time?: string | null
+        }
+        Update: {
+          active?: boolean
+          apis?: Json
+          created_at?: string
+          frequency?: string
+          id?: string
+          keywords?: Json
+          last_run?: string | null
+          next_run?: string | null
+          project_id?: string
+          schedule_day?: number | null
+          schedule_time?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "schedules_project_id_fkey"
             columns: ["project_id"]
             isOneToOne: false
             referencedRelation: "projects"
