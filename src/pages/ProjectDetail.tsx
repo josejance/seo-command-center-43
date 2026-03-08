@@ -10,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Label } from '@/components/ui/label';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { ArrowLeft, Plus, Search, MapPin, Globe, Trash2, Rocket } from 'lucide-react';
+import { ArrowLeft, Plus, Search, MapPin, Globe, Trash2, Rocket, Eye } from 'lucide-react';
 import { toast } from 'sonner';
 
 type SourceType = 'main' | 'related' | 'suggestion' | 'idea' | 'autocomplete' | 'subtopic' | 'paa';
@@ -189,8 +189,13 @@ export default function ProjectDetail() {
                   </TableHeader>
                   <TableBody>
                     {keywords.map(kw => (
-                      <TableRow key={kw.id} className="group">
-                        <TableCell className="font-medium">{kw.keyword}</TableCell>
+                      <TableRow key={kw.id} className="group cursor-pointer hover:bg-muted/20" onClick={() => kw.source_type === 'main' && kw.status === 'analyzed' ? navigate(`/projects/${id}/research/${kw.id}`) : undefined}>
+                        <TableCell className="font-medium">
+                          <div className="flex items-center gap-2">
+                            {kw.source_type === 'main' && kw.status === 'analyzed' && <Eye className="h-3.5 w-3.5 text-primary" />}
+                            {kw.keyword}
+                          </div>
+                        </TableCell>
                         <TableCell><Badge variant="outline" className={sourceColors[kw.source_type]}>{kw.source_type}</Badge></TableCell>
                         <TableCell className="font-mono text-sm">{kw.search_volume?.toLocaleString() ?? '—'}</TableCell>
                         <TableCell className="font-mono text-sm">{kw.keyword_difficulty != null ? `${kw.keyword_difficulty}%` : '—'}</TableCell>
