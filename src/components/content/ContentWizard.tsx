@@ -5,7 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Loader2, ChevronRight, ChevronLeft, Sparkles } from 'lucide-react';
+import { Loader2, ChevronRight, ChevronLeft, Sparkles, FileText, Globe, Download } from 'lucide-react';
 import { toast } from 'sonner';
 import ContentEditor from './ContentEditor';
 import SeoChecklist from './SeoChecklist';
