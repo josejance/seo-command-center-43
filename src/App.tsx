@@ -16,6 +16,7 @@ import ResearchResults from "./pages/ResearchResults";
 import Analysis from "./pages/Analysis";
 import ProjectAnalysis from "./pages/ProjectAnalysis";
 import Content from "./pages/Content";
+import ProjectContentStudio from "./pages/ProjectContentStudio";
 import Monitoring from "./pages/Monitoring";
 import SettingsPage from "./pages/SettingsPage";
 import NotFound from "./pages/NotFound";
