@@ -239,8 +239,9 @@ export default function ProjectMonitoring() {
       </div>
 
       <Tabs defaultValue="rankings">
-        <TabsList>
+        <TabsList className="flex flex-wrap h-auto gap-1">
           <TabsTrigger value="rankings">Rank Tracker</TabsTrigger>
+          <TabsTrigger value="decay" className="flex items-center gap-1.5"><HeartCrack className="h-3.5 w-3.5" />Content Decay</TabsTrigger>
           <TabsTrigger value="config">Configuração</TabsTrigger>
           <TabsTrigger value="alerts">Alertas ({alerts.filter(a => !a.read).length})</TabsTrigger>
           <TabsTrigger value="history">Histórico</TabsTrigger>
