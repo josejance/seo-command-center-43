@@ -243,6 +243,72 @@ export default function ContentWizard({ projectId, onDone, editingPieceId }: Pro
     onDone();
   };
 
+  const handleGenerateBriefing = async () => {
+    if (!selectedKeyword) return;
+    setLoadingBriefing(true);
+    try {
+      const secondaryKws = keywords.filter(k => secondaryIds.has(k.id)).map(k => k.keyword);
+      const { data, error } = await supabase.functions.invoke('generate-briefing', {
+        body: {
+          keyword: selectedKeyword.keyword,
+          search_volume: selectedKeyword.search_volume,
+          keyword_difficulty: selectedKeyword.keyword_difficulty,
+          search_intent: selectedKeyword.search_intent,
+          secondary_keywords: secondaryKws,
+          paa_questions: paaQuestions.map(p => p.title).filter(Boolean),
+          outline,
+          serp_results: topSerp.map(r => ({ title: r.title, description: r.description })),
+        },
+      });
+      if (error) throw error;
+      if (data?.briefing) {
+        setBriefing(data.briefing);
+        toast.success('Briefing gerado!');
+        // Auto-download
+        const blob = new Blob([data.briefing], { type: 'text/markdown' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `briefing-${selectedKeyword.keyword.replace(/\s+/g, '-')}.md`;
+        a.click();
+        URL.revokeObjectURL(url);
+      }
+    } catch (e: any) {
+      toast.error(e.message || 'Erro ao gerar briefing');
+    }
+    setLoadingBriefing(false);
+  };
+
+  const handlePublishWordPress = async () => {
+    if (!draft || !contentPieceId) return;
+    setPublishingWp(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('publish-wordpress', {
+        body: {
+          content_piece_id: contentPieceId,
+          title: outline?.title ?? selectedKeyword?.keyword ?? 'Untitled',
+          content: draft,
+          status: 'draft',
+        },
+      });
+      if (error) throw error;
+      if (data?.success) {
+        toast.success(
+          <div>
+            <p>Publicado no WordPress!</p>
+            {data.post_url && <a href={data.post_url} target="_blank" rel="noopener noreferrer" className="text-primary underline text-sm">Ver post →</a>}
+          </div>
+        );
+        if (contentPieceId) {
+          await supabase.from('content_pieces').update({ status: 'published' as const }).eq('id', contentPieceId);
+        }
+      }
+    } catch (e: any) {
+      toast.error(e.message || 'Erro ao publicar no WordPress');
+    }
+    setPublishingWp(false);
+  };
+
   return (
     <div className="space-y-6">
       {/* Step indicators */}
