@@ -1,0 +1,1 @@
+CREATE UNIQUE INDEX IF NOT EXISTS app_settings_user_key_idx ON public.app_settings (user_id, setting_key);
