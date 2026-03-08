@@ -4,15 +4,25 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { ArrowLeft, ArrowUp, ArrowDown, Minus, Loader2, Activity, TrendingUp, TrendingDown, Clock, DollarSign, RefreshCw, AlertTriangle } from 'lucide-react';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import {
+  ArrowLeft, ArrowUp, ArrowDown, Minus, Loader2, Activity, TrendingUp, TrendingDown,
+  Clock, DollarSign, RefreshCw, AlertTriangle, ChevronDown, CalendarIcon, GitCompareArrows
+} from 'lucide-react';
 import { toast } from 'sonner';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import { format } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
+import { Calendar } from '@/components/ui/calendar';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { cn } from '@/lib/utils';
 
 interface Keyword {
   id: string;
@@ -67,6 +77,13 @@ export default function ProjectMonitoring() {
   const [targetDomain, setTargetDomain] = useState('');
   const [projectName, setProjectName] = useState('');
   const [alertFilter, setAlertFilter] = useState<string>('all');
+  const [severityFilter, setSeverityFilter] = useState<string>('all');
+  const [frequency, setFrequency] = useState<string>('weekly');
+  const [expandedHistory, setExpandedHistory] = useState<string | null>(null);
+
+  // Temporal comparison state
+  const [compareDate1, setCompareDate1] = useState<Date | undefined>();
+  const [compareDate2, setCompareDate2] = useState<Date | undefined>();
 
   const loadData = useCallback(async () => {
     if (!user || !id) return;
@@ -85,16 +102,19 @@ export default function ProjectMonitoring() {
     setAlerts((alertRes.data as Alert[]) ?? []);
     setHistory((histRes.data as HistoryEntry[]) ?? []);
 
-    // Load domain from settings
-    const { data: domainSetting } = await supabase.from('app_settings')
-      .select('setting_value')
+    // Load domain + frequency from settings
+    const { data: settings } = await supabase.from('app_settings')
+      .select('setting_key, setting_value')
       .eq('user_id', user.id)
-      .eq('setting_key', `monitoring_domain_${id}`)
-      .single();
-    if (domainSetting) setTargetDomain(domainSetting.setting_value);
+      .in('setting_key', [`monitoring_domain_${id}`, `monitoring_frequency_${id}`]);
+
+    (settings ?? []).forEach((s: any) => {
+      if (s.setting_key === `monitoring_domain_${id}`) setTargetDomain(s.setting_value);
+      if (s.setting_key === `monitoring_frequency_${id}`) setFrequency(s.setting_value);
+    });
 
     // Load rank history for monitored keywords
-    const monitoredIds = kws.filter(k => k.monitored).map(k => k.id);
+    const monitoredIds = kws.filter((k: any) => k.monitored).map((k: any) => k.id);
     if (monitoredIds.length > 0) {
       const { data: ranks } = await supabase
         .from('rank_history')
@@ -129,6 +149,16 @@ export default function ProjectMonitoring() {
     toast.success('Domínio salvo!');
   };
 
+  const saveFrequency = async (val: string) => {
+    if (!user || !id) return;
+    setFrequency(val);
+    await supabase.from('app_settings').upsert(
+      { user_id: user.id, setting_key: `monitoring_frequency_${id}`, setting_value: val, updated_at: new Date().toISOString() },
+      { onConflict: 'user_id,setting_key' }
+    );
+    toast.success(`Frequência salva: ${val === 'daily' ? 'Diário' : val === 'weekly' ? 'Semanal' : 'Mensal'}`);
+  };
+
   const checkRankings = async () => {
     if (!targetDomain.trim()) { toast.error('Configure o domínio alvo primeiro'); return; }
     setChecking(true);
@@ -153,12 +183,20 @@ export default function ProjectMonitoring() {
   // Build chart data
   const monitoredKeywords = keywords.filter(k => k.monitored);
   const chartData = buildChartData(monitoredKeywords, rankData);
-
-  // Get latest ranks for table
   const latestRanks = getLatestRanks(monitoredKeywords, rankData);
 
-  const filteredAlerts = alertFilter === 'all' ? alerts : alerts.filter(a => a.type === alertFilter);
+  // Alert filters
+  let filteredAlerts = alerts;
+  if (alertFilter !== 'all') filteredAlerts = filteredAlerts.filter(a => a.type === alertFilter);
+  if (severityFilter !== 'all') filteredAlerts = filteredAlerts.filter(a => a.severity === severityFilter);
+
   const totalCost = history.reduce((sum, h) => sum + (h.cost_credits ?? 0), 0);
+
+  // Temporal comparison data
+  const comparisonData = buildComparisonData(monitoredKeywords, rankData, compareDate1, compareDate2);
+
+  // Enrich history with keyword names
+  const keywordMap = Object.fromEntries(keywords.map(k => [k.id, k.keyword]));
 
   if (loading) return <div className="text-muted-foreground">Carregando...</div>;
 
@@ -205,13 +243,13 @@ export default function ProjectMonitoring() {
           <TabsTrigger value="config">Configuração</TabsTrigger>
           <TabsTrigger value="alerts">Alertas ({alerts.filter(a => !a.read).length})</TabsTrigger>
           <TabsTrigger value="history">Histórico</TabsTrigger>
+          <TabsTrigger value="compare">Comparativo</TabsTrigger>
         </TabsList>
 
         {/* RANK TRACKER */}
         <TabsContent value="rankings" className="mt-4 space-y-6">
           {monitoredKeywords.length > 0 ? (
             <>
-              {/* Chart */}
               {chartData.length > 1 && (
                 <Card className="bg-card border-border/50">
                   <CardHeader><CardTitle className="text-lg">Evolução de Posição (Top 10 Keywords)</CardTitle></CardHeader>
@@ -227,15 +265,7 @@ export default function ProjectMonitoring() {
                         />
                         <Legend />
                         {monitoredKeywords.slice(0, 10).map((kw, i) => (
-                          <Line
-                            key={kw.id}
-                            type="monotone"
-                            dataKey={kw.keyword}
-                            stroke={CHART_COLORS[i % CHART_COLORS.length]}
-                            strokeWidth={2}
-                            dot={{ r: 3 }}
-                            connectNulls
-                          />
+                          <Line key={kw.id} type="monotone" dataKey={kw.keyword} stroke={CHART_COLORS[i % CHART_COLORS.length]} strokeWidth={2} dot={{ r: 3 }} connectNulls />
                         ))}
                       </LineChart>
                     </ResponsiveContainer>
@@ -243,7 +273,6 @@ export default function ProjectMonitoring() {
                 </Card>
               )}
 
-              {/* Rankings Table */}
               <Card className="bg-card border-border/50">
                 <CardContent className="pt-6">
                   <Table>
@@ -299,14 +328,31 @@ export default function ProjectMonitoring() {
             <CardContent className="space-y-4">
               <p className="text-sm text-muted-foreground">Informe o domínio que você quer monitorar nos resultados da SERP.</p>
               <div className="flex gap-2">
-                <Input
-                  value={targetDomain}
-                  onChange={e => setTargetDomain(e.target.value)}
-                  placeholder="ex: meusite.com.br"
-                  className="max-w-md"
-                />
+                <Input value={targetDomain} onChange={e => setTargetDomain(e.target.value)} placeholder="ex: meusite.com.br" className="max-w-md" />
                 <Button onClick={saveDomain} variant="outline">Salvar</Button>
               </div>
+            </CardContent>
+          </Card>
+
+          <Card className="bg-card border-border/50">
+            <CardHeader><CardTitle className="text-lg">Frequência de Monitoramento</CardTitle></CardHeader>
+            <CardContent className="space-y-4">
+              <p className="text-sm text-muted-foreground">
+                Defina com que frequência os rankings devem ser verificados. A verificação automática requer configuração de cron job.
+              </p>
+              <Select value={frequency} onValueChange={saveFrequency}>
+                <SelectTrigger className="w-48">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="daily">Diário</SelectItem>
+                  <SelectItem value="weekly">Semanal</SelectItem>
+                  <SelectItem value="monthly">Mensal</SelectItem>
+                </SelectContent>
+              </Select>
+              <p className="text-xs text-muted-foreground">
+                Frequência atual: <span className="font-medium text-foreground">{frequency === 'daily' ? 'Diário' : frequency === 'weekly' ? 'Semanal' : 'Mensal'}</span>
+              </p>
             </CardContent>
           </Card>
 
@@ -326,10 +372,7 @@ export default function ProjectMonitoring() {
                     {keywords.map(kw => (
                       <TableRow key={kw.id}>
                         <TableCell>
-                          <Checkbox
-                            checked={kw.monitored}
-                            onCheckedChange={(val) => toggleMonitored(kw.id, !!val)}
-                          />
+                          <Checkbox checked={kw.monitored} onCheckedChange={(val) => toggleMonitored(kw.id, !!val)} />
                         </TableCell>
                         <TableCell className="font-medium">{kw.keyword}</TableCell>
                         <TableCell className="font-mono text-sm">{kw.search_volume?.toLocaleString() ?? '—'}</TableCell>
@@ -352,11 +395,23 @@ export default function ProjectMonitoring() {
                 <SelectValue placeholder="Filtrar por tipo" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">Todos</SelectItem>
+                <SelectItem value="all">Todos os tipos</SelectItem>
                 <SelectItem value="rank_drop">Queda de Posição</SelectItem>
                 <SelectItem value="rank_improvement">Melhoria de Posição</SelectItem>
                 <SelectItem value="new_competitor">Novo Competidor</SelectItem>
                 <SelectItem value="keyword_trend">Tendência</SelectItem>
+              </SelectContent>
+            </Select>
+            <Select value={severityFilter} onValueChange={setSeverityFilter}>
+              <SelectTrigger className="w-48">
+                <SelectValue placeholder="Filtrar por severidade" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Todas severidades</SelectItem>
+                <SelectItem value="critical">Crítico</SelectItem>
+                <SelectItem value="high">Alto</SelectItem>
+                <SelectItem value="medium">Médio</SelectItem>
+                <SelectItem value="low">Baixo</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -417,18 +472,72 @@ export default function ProjectMonitoring() {
 
           {history.length > 0 ? (
             <div className="space-y-2">
-              {history.map(h => (
-                <Card key={h.id} className="bg-card border-border/50">
-                  <CardContent className="py-3 flex items-center gap-4">
-                    <Clock className="h-4 w-4 text-muted-foreground flex-shrink-0" />
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-mono">{h.api_endpoint ?? 'N/A'}</p>
-                      <p className="text-xs text-muted-foreground">{new Date(h.executed_at).toLocaleString('pt-BR')}</p>
-                    </div>
-                    <Badge variant="secondary">{h.cost_credits != null ? `$${h.cost_credits.toFixed(4)}` : '—'}</Badge>
-                  </CardContent>
-                </Card>
-              ))}
+              {history.map(h => {
+                const raw = h.raw_response;
+                const results = raw?.results ?? [];
+                const histAlerts = raw?.alerts ?? [];
+                const kwName = h.keyword_id ? keywordMap[h.keyword_id] : null;
+                const isExpanded = expandedHistory === h.id;
+
+                return (
+                  <Collapsible key={h.id} open={isExpanded} onOpenChange={() => setExpandedHistory(isExpanded ? null : h.id)}>
+                    <Card className="bg-card border-border/50">
+                      <CollapsibleTrigger asChild>
+                        <CardContent className="py-3 flex items-center gap-4 cursor-pointer hover:bg-muted/20 transition-colors">
+                          <Clock className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2">
+                              <p className="text-sm font-medium">{kwName ?? h.api_endpoint ?? 'N/A'}</p>
+                              {h.api_endpoint && (
+                                <Badge variant="outline" className="text-[10px]">{h.api_endpoint}</Badge>
+                              )}
+                            </div>
+                            <p className="text-xs text-muted-foreground">{new Date(h.executed_at).toLocaleString('pt-BR')}</p>
+                          </div>
+                          <Badge variant="secondary">{h.cost_credits != null ? `$${h.cost_credits.toFixed(4)}` : '—'}</Badge>
+                          <ChevronDown className={`h-4 w-4 text-muted-foreground transition-transform ${isExpanded ? 'rotate-180' : ''}`} />
+                        </CardContent>
+                      </CollapsibleTrigger>
+                      <CollapsibleContent>
+                        <div className="px-6 pb-4 space-y-3">
+                          {results.length > 0 && (
+                            <div>
+                              <p className="text-xs font-medium text-muted-foreground mb-1">Resultados:</p>
+                              <div className="space-y-1">
+                                {results.map((r: any, i: number) => (
+                                  <div key={i} className="flex items-center gap-3 text-sm">
+                                    <span className="font-medium min-w-[150px]">{r.keyword}</span>
+                                    <span className="font-mono text-muted-foreground">
+                                      Pos: {r.position ?? 'N/R'}
+                                    </span>
+                                    {r.url && (
+                                      <span className="text-xs text-muted-foreground truncate max-w-[250px]">{r.url}</span>
+                                    )}
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+                          {histAlerts.length > 0 && (
+                            <div>
+                              <p className="text-xs font-medium text-muted-foreground mb-1">Alertas gerados:</p>
+                              {histAlerts.map((a: any, i: number) => (
+                                <div key={i} className={`text-sm flex items-center gap-2 ${a.type === 'rank_improvement' ? 'text-chart-3' : 'text-destructive'}`}>
+                                  {a.type === 'rank_improvement' ? <TrendingUp className="h-3.5 w-3.5" /> : <TrendingDown className="h-3.5 w-3.5" />}
+                                  {a.message}
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                          {results.length === 0 && histAlerts.length === 0 && (
+                            <p className="text-xs text-muted-foreground">Sem dados detalhados disponíveis para esta execução.</p>
+                          )}
+                        </div>
+                      </CollapsibleContent>
+                    </Card>
+                  </Collapsible>
+                );
+              })}
             </div>
           ) : (
             <Card className="border-dashed border-border/50">
@@ -439,8 +548,100 @@ export default function ProjectMonitoring() {
             </Card>
           )}
         </TabsContent>
+
+        {/* TEMPORAL COMPARISON */}
+        <TabsContent value="compare" className="mt-4 space-y-6">
+          <Card className="bg-card border-border/50">
+            <CardHeader>
+              <CardTitle className="text-lg flex items-center gap-2">
+                <GitCompareArrows className="h-5 w-5 text-primary" />
+                Comparativo Temporal
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <p className="text-sm text-muted-foreground">Selecione duas datas para comparar as posições de ranking das keywords monitoradas.</p>
+              <div className="flex items-end gap-4">
+                <div className="space-y-2">
+                  <Label>Data 1</Label>
+                  <DatePicker date={compareDate1} onSelect={setCompareDate1} />
+                </div>
+                <div className="space-y-2">
+                  <Label>Data 2</Label>
+                  <DatePicker date={compareDate2} onSelect={setCompareDate2} />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {compareDate1 && compareDate2 && comparisonData.length > 0 ? (
+            <Card className="bg-card border-border/50">
+              <CardContent className="pt-6">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Keyword</TableHead>
+                      <TableHead className="text-center">{format(compareDate1, 'dd/MM/yyyy')}</TableHead>
+                      <TableHead className="text-center">{format(compareDate2, 'dd/MM/yyyy')}</TableHead>
+                      <TableHead className="text-center">Variação</TableHead>
+                      <TableHead>URL (Data 1)</TableHead>
+                      <TableHead>URL (Data 2)</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {comparisonData.map(row => {
+                      const diff = (row.pos1 !== null && row.pos2 !== null) ? row.pos1 - row.pos2 : null;
+                      return (
+                        <TableRow key={row.keyword_id}>
+                          <TableCell className="font-medium">{row.keyword}</TableCell>
+                          <TableCell className="text-center font-mono">{row.pos1 ?? 'N/R'}</TableCell>
+                          <TableCell className="text-center font-mono">{row.pos2 ?? 'N/R'}</TableCell>
+                          <TableCell className="text-center">
+                            {diff !== null ? (
+                              <div className={`flex items-center justify-center gap-1 font-mono text-sm ${
+                                diff > 0 ? 'text-chart-3' : diff < 0 ? 'text-destructive' : 'text-muted-foreground'
+                              }`}>
+                                {diff > 0 ? <ArrowUp className="h-3.5 w-3.5" /> : diff < 0 ? <ArrowDown className="h-3.5 w-3.5" /> : <Minus className="h-3.5 w-3.5" />}
+                                {diff !== 0 ? Math.abs(diff) : '0'}
+                              </div>
+                            ) : <span className="text-muted-foreground">—</span>}
+                          </TableCell>
+                          <TableCell className="text-xs text-muted-foreground max-w-[180px] truncate">{row.url1 ?? '—'}</TableCell>
+                          <TableCell className="text-xs text-muted-foreground max-w-[180px] truncate">{row.url2 ?? '—'}</TableCell>
+                        </TableRow>
+                      );
+                    })}
+                  </TableBody>
+                </Table>
+              </CardContent>
+            </Card>
+          ) : compareDate1 && compareDate2 ? (
+            <Card className="border-dashed border-border/50">
+              <CardContent className="flex flex-col items-center justify-center py-12">
+                <GitCompareArrows className="h-10 w-10 text-muted-foreground mb-3" />
+                <p className="text-muted-foreground">Sem dados de ranking para as datas selecionadas.</p>
+              </CardContent>
+            </Card>
+          ) : null}
+        </TabsContent>
       </Tabs>
     </div>
+  );
+}
+
+// DatePicker component
+function DatePicker({ date, onSelect }: { date: Date | undefined; onSelect: (d: Date | undefined) => void }) {
+  return (
+    <Popover>
+      <PopoverTrigger asChild>
+        <Button variant="outline" className={cn("w-[200px] justify-start text-left font-normal", !date && "text-muted-foreground")}>
+          <CalendarIcon className="mr-2 h-4 w-4" />
+          {date ? format(date, 'dd/MM/yyyy') : 'Selecionar data'}
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent className="w-auto p-0" align="start">
+        <Calendar mode="single" selected={date} onSelect={onSelect} initialFocus className="p-3 pointer-events-auto" />
+      </PopoverContent>
+    </Popover>
   );
 }
 
@@ -473,22 +674,33 @@ function getLatestRanks(keywords: Keyword[], rankData: Record<string, RankEntry[
     const entries = rankData[kw.id] ?? [];
     const latest = entries[entries.length - 1];
     const prev = entries.length >= 2 ? entries[entries.length - 2] : null;
-
     const current = latest?.position ?? null;
     const previous = prev?.position ?? null;
     let variation: number | null = null;
-    if (current !== null && previous !== null) {
-      variation = previous - current; // positive = improved (lower position number)
-    }
+    if (current !== null && previous !== null) variation = previous - current;
+    return { keyword_id: kw.id, keyword: kw.keyword, current, previous, variation, volume: kw.search_volume, url: latest?.url ?? null };
+  });
+}
+
+// Helper: build comparison data for two dates
+function buildComparisonData(keywords: Keyword[], rankData: Record<string, RankEntry[]>, date1?: Date, date2?: Date) {
+  if (!date1 || !date2) return [];
+
+  const d1str = date1.toLocaleDateString('pt-BR');
+  const d2str = date2.toLocaleDateString('pt-BR');
+
+  return keywords.map(kw => {
+    const entries = rankData[kw.id] ?? [];
+    const match1 = entries.find(e => new Date(e.checked_at).toLocaleDateString('pt-BR') === d1str);
+    const match2 = entries.find(e => new Date(e.checked_at).toLocaleDateString('pt-BR') === d2str);
 
     return {
       keyword_id: kw.id,
       keyword: kw.keyword,
-      current,
-      previous,
-      variation,
-      volume: kw.search_volume,
-      url: latest?.url ?? null,
+      pos1: match1?.position ?? null,
+      pos2: match2?.position ?? null,
+      url1: match1?.url ?? null,
+      url2: match2?.url ?? null,
     };
-  });
+  }).filter(r => r.pos1 !== null || r.pos2 !== null);
 }
