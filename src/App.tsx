@@ -18,6 +18,7 @@ import ProjectAnalysis from "./pages/ProjectAnalysis";
 import Content from "./pages/Content";
 import ProjectContentStudio from "./pages/ProjectContentStudio";
 import Monitoring from "./pages/Monitoring";
+import ProjectMonitoring from "./pages/ProjectMonitoring";
 import SettingsPage from "./pages/SettingsPage";
 import NotFound from "./pages/NotFound";
 
