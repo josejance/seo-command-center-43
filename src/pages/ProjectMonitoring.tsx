@@ -14,10 +14,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import {
   ArrowLeft, ArrowUp, ArrowDown, Minus, Loader2, Activity, TrendingUp, TrendingDown,
-  Clock, DollarSign, RefreshCw, AlertTriangle, ChevronDown, CalendarIcon, GitCompareArrows
+  Clock, DollarSign, RefreshCw, AlertTriangle, ChevronDown, CalendarIcon, GitCompareArrows, HeartCrack
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import ContentDecaySection from '@/components/monitoring/ContentDecaySection';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { Calendar } from '@/components/ui/calendar';
