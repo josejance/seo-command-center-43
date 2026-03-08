@@ -15,6 +15,7 @@ interface Keyword {
   keyword: string;
   search_volume: number | null;
   keyword_difficulty: number | null;
+  cpc: number | null;
   search_intent: string | null;
   source_type: string;
   parent_keyword_id: string | null;
