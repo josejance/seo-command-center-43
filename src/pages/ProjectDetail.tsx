@@ -109,6 +109,9 @@ export default function ProjectDetail() {
             <span>Criado em {new Date(project.created_at).toLocaleDateString('pt-BR')}</span>
           </div>
         </div>
+        <Button onClick={() => navigate(`/projects/${project.id}/research`)} className="gradient-primary text-primary-foreground">
+          <Rocket className="mr-2 h-4 w-4" />Pesquisar Keywords
+        </Button>
       </div>
 
       {/* Stats */}
