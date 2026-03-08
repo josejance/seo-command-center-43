@@ -129,6 +129,14 @@ export default function SettingsPage() {
   const debounceRef = useRef<ReturnType<typeof setTimeout>>();
   const dropdownRef = useRef<HTMLDivElement>(null);
 
+  // WordPress
+  const [wpUrl, setWpUrl] = useState('');
+  const [wpUsername, setWpUsername] = useState('');
+  const [wpAppPassword, setWpAppPassword] = useState('');
+  const [savingWp, setSavingWp] = useState(false);
+  const [testingWp, setTestingWp] = useState(false);
+  const [wpStatus, setWpStatus] = useState<'idle' | 'connected' | 'error'>('idle');
+
   // Usage
   const [usageData, setUsageData] = useState<{ month: string; credits: number; cost: number }[]>([]);
   const [totalCredits, setTotalCredits] = useState(0);
