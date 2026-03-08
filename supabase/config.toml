@@ -23,3 +23,6 @@ verify_jwt = false
 
 [functions.cluster-keywords]
 verify_jwt = false
+
+[functions.model-search]
+verify_jwt = false

@@ -6,6 +6,16 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
+async function getSelectedModel(supabase: any, userId: string): Promise<string> {
+  const { data } = await supabase
+    .from("app_settings")
+    .select("setting_value")
+    .eq("user_id", userId)
+    .eq("setting_key", "ai_model")
+    .single();
+  return data?.setting_value || "openai/gpt-4o-mini";
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
@@ -29,6 +39,7 @@ Deno.serve(async (req) => {
       });
     }
 
+    const userId = claimsData.claims.sub;
     const { project_id, keywords } = await req.json();
     if (!project_id || !keywords?.length) {
       return new Response(JSON.stringify({ error: "project_id and keywords are required" }), {
@@ -36,8 +47,10 @@ Deno.serve(async (req) => {
       });
     }
 
-    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
-    if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
+    const OPENROUTER_API_KEY = Deno.env.get("OPENROUTER_API_KEY");
+    if (!OPENROUTER_API_KEY) throw new Error("OPENROUTER_API_KEY is not configured");
+
+    const model = await getSelectedModel(supabase, userId);
 
     // Process in batches of 50
     const batchSize = 50;
@@ -47,19 +60,20 @@ Deno.serve(async (req) => {
       const batch = keywords.slice(i, i + batchSize);
       const keywordList = batch.map((k: { keyword: string }) => k.keyword).join("\n- ");
 
-      const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+      const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
         method: "POST",
         headers: {
-          Authorization: `Bearer ${LOVABLE_API_KEY}`,
+          Authorization: `Bearer ${OPENROUTER_API_KEY}`,
           "Content-Type": "application/json",
+          "HTTP-Referer": Deno.env.get("SUPABASE_URL") ?? "",
         },
         body: JSON.stringify({
-          model: "google/gemini-3-flash-preview",
+          model,
           messages: [
             {
               role: "system",
               content: `Você é um especialista em SEO. Agrupe keywords em clusters temáticos.
-Responda APENAS com JSON válido, sem markdown.`
+Responda APENAS com JSON válido no formato: { "clusters": [{ "name": "string", "intent": "informational|commercial|transactional|navigational", "keywords": ["string"] }] }`
             },
             {
               role: "user",
@@ -68,39 +82,9 @@ Responda APENAS com JSON válido, sem markdown.`
 Keywords:
 - ${keywordList}
 
-Retorne JSON: { "clusters": [{ "name": "string", "intent": "string", "keywords": ["string"] }] }`
+Retorne APENAS JSON válido.`
             },
           ],
-          tools: [
-            {
-              type: "function",
-              function: {
-                name: "return_clusters",
-                description: "Return keyword clusters",
-                parameters: {
-                  type: "object",
-                  properties: {
-                    clusters: {
-                      type: "array",
-                      items: {
-                        type: "object",
-                        properties: {
-                          name: { type: "string" },
-                          intent: { type: "string", enum: ["informational", "commercial", "transactional", "navigational"] },
-                          keywords: { type: "array", items: { type: "string" } }
-                        },
-                        required: ["name", "intent", "keywords"],
-                        additionalProperties: false
-                      }
-                    }
-                  },
-                  required: ["clusters"],
-                  additionalProperties: false
-                }
-              }
-            }
-          ],
-          tool_choice: { type: "function", function: { name: "return_clusters" } },
         }),
       });
 
@@ -111,24 +95,27 @@ Retorne JSON: { "clusters": [{ "name": "string", "intent": "string", "keywords":
           });
         }
         if (response.status === 402) {
-          return new Response(JSON.stringify({ error: "Créditos insuficientes para IA." }), {
+          return new Response(JSON.stringify({ error: "Créditos insuficientes na OpenRouter." }), {
             status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" },
           });
         }
         const t = await response.text();
-        console.error("AI gateway error:", response.status, t);
-        throw new Error("AI gateway error");
+        console.error("OpenRouter error:", response.status, t);
+        throw new Error("OpenRouter error");
       }
 
       const data = await response.json();
-      const toolCall = data.choices?.[0]?.message?.tool_calls?.[0];
-      if (toolCall?.function?.arguments) {
-        try {
-          const parsed = JSON.parse(toolCall.function.arguments);
+      const content = data.choices?.[0]?.message?.content ?? "";
+
+      try {
+        // Try to parse JSON from content (may be wrapped in markdown code blocks)
+        const jsonMatch = content.match(/\{[\s\S]*\}/);
+        if (jsonMatch) {
+          const parsed = JSON.parse(jsonMatch[0]);
           if (parsed.clusters) allClusters.push(...parsed.clusters);
-        } catch (e) {
-          console.error("Failed to parse tool call arguments:", e);
         }
+      } catch (e) {
+        console.error("Failed to parse AI response:", e, content);
       }
     }
 
