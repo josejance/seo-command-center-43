@@ -15,6 +15,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { cn } from '@/lib/utils';
 import { useState } from 'react';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 
 const navItems = [
   { title: 'Dashboard', url: '/dashboard', icon: LayoutDashboard },
@@ -22,8 +23,8 @@ const navItems = [
   { title: 'Pesquisa', url: '/research', icon: Search },
   { title: 'Análise', url: '/analysis', icon: BarChart3 },
   { title: 'Conteúdo', url: '/content', icon: FileText },
-  { title: 'Monitoramento', url: '/monitoring', icon: Activity },
-  { title: 'Configurações', url: '/settings', icon: Settings },
+  { title: 'Monitor', url: '/monitoring', icon: Activity },
+  { title: 'Config', url: '/settings', icon: Settings },
 ];
 
 export function TopNav() {
@@ -34,52 +35,61 @@ export function TopNav() {
 
   return (
     <header className="sticky top-0 z-50 border-b border-border bg-card/95 backdrop-blur-sm">
-      <div className="flex items-center justify-between h-14 px-4">
+      <div className="flex items-center h-11 px-2 gap-1">
         {/* Logo */}
-        <div className="flex items-center gap-2 shrink-0">
-          <div className="w-7 h-7 rounded-lg gradient-primary flex items-center justify-center">
-            <Search className="w-3.5 h-3.5 text-primary-foreground" />
+        <div className="flex items-center gap-1.5 shrink-0 pr-2">
+          <div className="w-6 h-6 rounded-md gradient-primary flex items-center justify-center">
+            <Search className="w-3 h-3 text-primary-foreground" />
           </div>
-          <span className="font-bold text-sm text-foreground">SEO Command</span>
+          <span className="font-bold text-xs text-foreground hidden lg:block">SEO Command</span>
         </div>
 
         {/* Desktop nav */}
         {!isMobile && (
-          <nav className="flex items-center gap-1 mx-4 overflow-x-auto">
+          <nav className="flex items-center gap-0.5 flex-1 min-w-0 overflow-x-auto scrollbar-none">
             {navItems.map((item) => (
-              <NavLink
-                key={item.url}
-                to={item.url}
-                className={({ isActive }) =>
-                  cn(
-                    'flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm transition-colors whitespace-nowrap',
-                    isActive
-                      ? 'bg-primary/10 text-primary font-medium'
-                      : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
-                  )
-                }
-              >
-                <item.icon className="h-4 w-4" />
-                <span>{item.title}</span>
-              </NavLink>
+              <Tooltip key={item.url}>
+                <TooltipTrigger asChild>
+                  <NavLink
+                    to={item.url}
+                    className={({ isActive }) =>
+                      cn(
+                        'flex items-center gap-1 px-2 py-1 rounded-md text-xs transition-colors whitespace-nowrap',
+                        isActive
+                          ? 'bg-primary/10 text-primary font-medium'
+                          : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
+                      )
+                    }
+                  >
+                    <item.icon className="h-3.5 w-3.5" />
+                    <span className="hidden xl:inline">{item.title}</span>
+                  </NavLink>
+                </TooltipTrigger>
+                <TooltipContent side="bottom" className="xl:hidden">
+                  {item.title}
+                </TooltipContent>
+              </Tooltip>
             ))}
           </nav>
         )}
 
+        {/* Spacer for mobile */}
+        {isMobile && <div className="flex-1" />}
+
         {/* Right side */}
-        <div className="flex items-center gap-2 shrink-0">
+        <div className="flex items-center gap-1.5 shrink-0">
           {!isMobile && (
             <>
-              <span className="text-sm text-muted-foreground">{user?.email}</span>
-              <div className="h-8 w-8 rounded-full bg-primary/20 flex items-center justify-center text-primary text-xs font-medium">
+              <span className="text-xs text-muted-foreground hidden xl:block max-w-[140px] truncate">{user?.email}</span>
+              <div className="h-6 w-6 rounded-full bg-primary/20 flex items-center justify-center text-primary text-[10px] font-medium">
                 {initials}
               </div>
               <button
                 onClick={signOut}
-                className="text-muted-foreground hover:text-destructive p-1.5 rounded-md hover:bg-muted/50 transition-colors"
+                className="text-muted-foreground hover:text-destructive p-1 rounded-md hover:bg-muted/50 transition-colors"
                 aria-label="Sair"
               >
-                <LogOut className="h-4 w-4" />
+                <LogOut className="h-3.5 w-3.5" />
               </button>
             </>
           )}
@@ -97,7 +107,7 @@ export function TopNav() {
 
       {/* Mobile dropdown */}
       {isMobile && mobileOpen && (
-        <nav className="border-t border-border bg-card px-4 py-2 space-y-1">
+        <nav className="border-t border-border bg-card px-3 py-1.5 space-y-0.5">
           {navItems.map((item) => (
             <NavLink
               key={item.url}
@@ -105,7 +115,7 @@ export function TopNav() {
               onClick={() => setMobileOpen(false)}
               className={({ isActive }) =>
                 cn(
-                  'flex items-center gap-2 px-3 py-2 rounded-md text-sm transition-colors',
+                  'flex items-center gap-2 px-2.5 py-1.5 rounded-md text-sm transition-colors',
                   isActive
                     ? 'bg-primary/10 text-primary font-medium'
                     : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
@@ -118,7 +128,7 @@ export function TopNav() {
           ))}
           <button
             onClick={signOut}
-            className="flex items-center gap-2 px-3 py-2 rounded-md text-sm text-muted-foreground hover:text-destructive w-full"
+            className="flex items-center gap-2 px-2.5 py-1.5 rounded-md text-sm text-muted-foreground hover:text-destructive w-full"
           >
             <LogOut className="h-4 w-4" />
             <span>Sair</span>
