@@ -10,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Label } from '@/components/ui/label';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { ArrowLeft, Plus, Search, MapPin, Globe, Trash2, Rocket, Eye } from 'lucide-react';
+import { ArrowLeft, Plus, Search, MapPin, Globe, Trash2, Rocket, Eye, BarChart3 } from 'lucide-react';
 import { toast } from 'sonner';
 
 type SourceType = 'main' | 'related' | 'suggestion' | 'idea' | 'autocomplete' | 'subtopic' | 'paa';
@@ -109,9 +109,14 @@ export default function ProjectDetail() {
             <span>Criado em {new Date(project.created_at).toLocaleDateString('pt-BR')}</span>
           </div>
         </div>
-        <Button onClick={() => navigate(`/projects/${project.id}/research`)} className="gradient-primary text-primary-foreground">
-          <Rocket className="mr-2 h-4 w-4" />Pesquisar Keywords
-        </Button>
+        <div className="flex gap-2">
+          <Button variant="outline" onClick={() => navigate(`/projects/${project.id}/analysis`)}>
+            <BarChart3 className="mr-2 h-4 w-4" />Análise & Clusters
+          </Button>
+          <Button onClick={() => navigate(`/projects/${project.id}/research`)} className="gradient-primary text-primary-foreground">
+            <Rocket className="mr-2 h-4 w-4" />Pesquisar Keywords
+          </Button>
+        </div>
       </div>
 
       {/* Stats */}

@@ -61,6 +61,41 @@ export type Database = {
           },
         ]
       }
+      keyword_clusters: {
+        Row: {
+          created_at: string
+          id: string
+          intent: string | null
+          keyword_ids: Json
+          name: string
+          project_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          intent?: string | null
+          keyword_ids?: Json
+          name: string
+          project_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          intent?: string | null
+          keyword_ids?: Json
+          name?: string
+          project_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "keyword_clusters_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       keywords: {
         Row: {
           competition_level: string | null

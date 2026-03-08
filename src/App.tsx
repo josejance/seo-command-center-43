@@ -14,6 +14,7 @@ import Research from "./pages/Research";
 import ProjectResearch from "./pages/ProjectResearch";
 import ResearchResults from "./pages/ResearchResults";
 import Analysis from "./pages/Analysis";
+import ProjectAnalysis from "./pages/ProjectAnalysis";
 import Content from "./pages/Content";
 import Monitoring from "./pages/Monitoring";
 import SettingsPage from "./pages/SettingsPage";
@@ -46,6 +47,7 @@ const AppRoutes = () => (
     <Route path="/projects/:id/research" element={<ProtectedRoute><ProjectResearch /></ProtectedRoute>} />
     <Route path="/projects/:id/research/:keywordId" element={<ProtectedRoute><ResearchResults /></ProtectedRoute>} />
     <Route path="/research" element={<ProtectedRoute><Research /></ProtectedRoute>} />
+    <Route path="/projects/:id/analysis" element={<ProtectedRoute><ProjectAnalysis /></ProtectedRoute>} />
     <Route path="/analysis" element={<ProtectedRoute><Analysis /></ProtectedRoute>} />
     <Route path="/content" element={<ProtectedRoute><Content /></ProtectedRoute>} />
     <Route path="/monitoring" element={<ProtectedRoute><Monitoring /></ProtectedRoute>} />
