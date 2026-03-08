@@ -449,6 +449,7 @@ export default function SettingsPage() {
           <TabsTrigger value="api" className="gap-1.5"><Key className="h-3.5 w-3.5" />API Keys</TabsTrigger>
           <TabsTrigger value="domains" className="gap-1.5"><Globe className="h-3.5 w-3.5" />Domínios</TabsTrigger>
           <TabsTrigger value="research" className="gap-1.5"><BarChart3 className="h-3.5 w-3.5" />Pesquisa</TabsTrigger>
+          <TabsTrigger value="wordpress" className="gap-1.5"><Globe className="h-3.5 w-3.5" />WordPress</TabsTrigger>
           <TabsTrigger value="webhooks" className="gap-1.5"><Webhook className="h-3.5 w-3.5" />Webhooks</TabsTrigger>
           <TabsTrigger value="theme" className="gap-1.5"><Palette className="h-3.5 w-3.5" />Tema</TabsTrigger>
           <TabsTrigger value="ai" className="gap-1.5"><Bot className="h-3.5 w-3.5" />Modelo IA</TabsTrigger>
