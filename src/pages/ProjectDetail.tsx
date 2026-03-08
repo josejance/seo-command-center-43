@@ -110,6 +110,9 @@ export default function ProjectDetail() {
           </div>
         </div>
         <div className="flex gap-2">
+          <Button variant="outline" onClick={() => navigate(`/projects/${project.id}/content`)}>
+            <FileText className="mr-2 h-4 w-4" />Content Studio
+          </Button>
           <Button variant="outline" onClick={() => navigate(`/projects/${project.id}/analysis`)}>
             <BarChart3 className="mr-2 h-4 w-4" />Análise & Clusters
           </Button>
