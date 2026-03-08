@@ -26,3 +26,9 @@ verify_jwt = false
 
 [functions.model-search]
 verify_jwt = false
+
+[functions.generate-outline]
+verify_jwt = false
+
+[functions.generate-draft]
+verify_jwt = false
