@@ -109,7 +109,10 @@ export default function ProjectDetail() {
             <span>Criado em {new Date(project.created_at).toLocaleDateString('pt-BR')}</span>
           </div>
         </div>
-        <div className="flex gap-2">
+        <div className="flex gap-2 flex-wrap">
+          <Button variant="outline" onClick={() => navigate(`/projects/${project.id}/automation`)}>
+            <Zap className="mr-2 h-4 w-4" />Automação
+          </Button>
           <Button variant="outline" onClick={() => navigate(`/projects/${project.id}/monitor`)}>
             <Activity className="mr-2 h-4 w-4" />Monitoramento
           </Button>

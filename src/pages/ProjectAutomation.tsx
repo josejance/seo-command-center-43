@@ -125,7 +125,7 @@ export default function ProjectAutomation() {
     setProjectName(projRes.data?.name ?? '');
     setKeywords((kwRes.data as any[]) ?? []);
     setSchedules((schedRes.data as Schedule[]) ?? []);
-    setPipelines((pipeRes.data as PipelineConfig[]) ?? []);
+    setPipelines((pipeRes.data ?? []).map((p: any) => ({ ...p, steps: (typeof p.steps === 'string' ? JSON.parse(p.steps) : p.steps) as PipelineStep[] })));
     setLogs((logRes.data as AutomationLog[]) ?? []);
 
     // Load webhook URL
