@@ -281,7 +281,12 @@ export default function ProjectResearch() {
 
     setShowResults(true);
     setIsResearching(false);
-    toast.success('Pesquisa concluída!');
+    toast.success('Pesquisa concluída!', {
+      action: {
+        label: 'Ver Resultados',
+        onClick: () => navigate(`/projects/${projectId}/research/${mainKeywordId}`),
+      },
+    });
   };
 
   const StatusIcon = ({ status }: { status: StepStatus }) => {
