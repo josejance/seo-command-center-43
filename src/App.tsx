@@ -11,6 +11,7 @@ import ResetPassword from "./pages/ResetPassword";
 import Projects from "./pages/Projects";
 import ProjectDetail from "./pages/ProjectDetail";
 import Research from "./pages/Research";
+import ProjectResearch from "./pages/ProjectResearch";
 import Analysis from "./pages/Analysis";
 import Content from "./pages/Content";
 import Monitoring from "./pages/Monitoring";
@@ -41,6 +42,7 @@ const AppRoutes = () => (
     <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
     <Route path="/projects" element={<ProtectedRoute><Projects /></ProtectedRoute>} />
     <Route path="/projects/:id" element={<ProtectedRoute><ProjectDetail /></ProtectedRoute>} />
+    <Route path="/projects/:id/research" element={<ProtectedRoute><ProjectResearch /></ProtectedRoute>} />
     <Route path="/research" element={<ProtectedRoute><Research /></ProtectedRoute>} />
     <Route path="/analysis" element={<ProtectedRoute><Analysis /></ProtectedRoute>} />
     <Route path="/content" element={<ProtectedRoute><Content /></ProtectedRoute>} />
