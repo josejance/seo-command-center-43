@@ -323,6 +323,11 @@ export default function ProjectMonitoring() {
           )}
         </TabsContent>
 
+        {/* CONTENT DECAY */}
+        <TabsContent value="decay" className="mt-4">
+          <ContentDecaySection projectId={id!} keywords={keywords} rankData={rankData} />
+        </TabsContent>
+
         {/* CONFIG */}
         <TabsContent value="config" className="mt-4 space-y-6">
           <Card className="bg-card border-border/50">
