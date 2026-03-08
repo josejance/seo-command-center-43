@@ -14,7 +14,259 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      content_pieces: {
+        Row: {
+          created_at: string
+          draft: string | null
+          final_content: string | null
+          id: string
+          keyword_id: string
+          outline: Json | null
+          seo_score: number | null
+          status: Database["public"]["Enums"]["content_status"]
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          draft?: string | null
+          final_content?: string | null
+          id?: string
+          keyword_id: string
+          outline?: Json | null
+          seo_score?: number | null
+          status?: Database["public"]["Enums"]["content_status"]
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          draft?: string | null
+          final_content?: string | null
+          id?: string
+          keyword_id?: string
+          outline?: Json | null
+          seo_score?: number | null
+          status?: Database["public"]["Enums"]["content_status"]
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "content_pieces_keyword_id_fkey"
+            columns: ["keyword_id"]
+            isOneToOne: false
+            referencedRelation: "keywords"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      keywords: {
+        Row: {
+          competition_level: string | null
+          cpc: number | null
+          created_at: string
+          id: string
+          keyword: string
+          keyword_difficulty: number | null
+          parent_keyword_id: string | null
+          project_id: string
+          search_intent: string | null
+          search_volume: number | null
+          source_type: Database["public"]["Enums"]["keyword_source_type"]
+          status: Database["public"]["Enums"]["keyword_status"]
+        }
+        Insert: {
+          competition_level?: string | null
+          cpc?: number | null
+          created_at?: string
+          id?: string
+          keyword: string
+          keyword_difficulty?: number | null
+          parent_keyword_id?: string | null
+          project_id: string
+          search_intent?: string | null
+          search_volume?: number | null
+          source_type?: Database["public"]["Enums"]["keyword_source_type"]
+          status?: Database["public"]["Enums"]["keyword_status"]
+        }
+        Update: {
+          competition_level?: string | null
+          cpc?: number | null
+          created_at?: string
+          id?: string
+          keyword?: string
+          keyword_difficulty?: number | null
+          parent_keyword_id?: string | null
+          project_id?: string
+          search_intent?: string | null
+          search_volume?: number | null
+          source_type?: Database["public"]["Enums"]["keyword_source_type"]
+          status?: Database["public"]["Enums"]["keyword_status"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "keywords_parent_keyword_id_fkey"
+            columns: ["parent_keyword_id"]
+            isOneToOne: false
+            referencedRelation: "keywords"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "keywords_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          created_at: string
+          display_name: string | null
+          id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string
+          display_name?: string | null
+          id?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string
+          display_name?: string | null
+          id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      projects: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+          target_language: string
+          target_location: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+          target_language?: string
+          target_location?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+          target_language?: string
+          target_location?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      research_history: {
+        Row: {
+          api_endpoint: string | null
+          cost_credits: number | null
+          executed_at: string
+          id: string
+          keyword_id: string | null
+          project_id: string
+          raw_response: Json | null
+        }
+        Insert: {
+          api_endpoint?: string | null
+          cost_credits?: number | null
+          executed_at?: string
+          id?: string
+          keyword_id?: string | null
+          project_id: string
+          raw_response?: Json | null
+        }
+        Update: {
+          api_endpoint?: string | null
+          cost_credits?: number | null
+          executed_at?: string
+          id?: string
+          keyword_id?: string | null
+          project_id?: string
+          raw_response?: Json | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "research_history_keyword_id_fkey"
+            columns: ["keyword_id"]
+            isOneToOne: false
+            referencedRelation: "keywords"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "research_history_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      serp_results: {
+        Row: {
+          description: string | null
+          domain: string | null
+          fetched_at: string
+          id: string
+          keyword_id: string
+          paa_answer: string | null
+          position: number
+          result_type: Database["public"]["Enums"]["serp_result_type"]
+          title: string | null
+          url: string | null
+        }
+        Insert: {
+          description?: string | null
+          domain?: string | null
+          fetched_at?: string
+          id?: string
+          keyword_id: string
+          paa_answer?: string | null
+          position: number
+          result_type?: Database["public"]["Enums"]["serp_result_type"]
+          title?: string | null
+          url?: string | null
+        }
+        Update: {
+          description?: string | null
+          domain?: string | null
+          fetched_at?: string
+          id?: string
+          keyword_id?: string
+          paa_answer?: string | null
+          position?: number
+          result_type?: Database["public"]["Enums"]["serp_result_type"]
+          title?: string | null
+          url?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "serp_results_keyword_id_fkey"
+            columns: ["keyword_id"]
+            isOneToOne: false
+            referencedRelation: "keywords"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
@@ -23,7 +275,22 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      [_ in never]: never
+      content_status: "outline" | "draft" | "review" | "final" | "published"
+      keyword_source_type:
+        | "main"
+        | "related"
+        | "suggestion"
+        | "idea"
+        | "autocomplete"
+        | "subtopic"
+        | "paa"
+      keyword_status: "pending" | "analyzed" | "content_created" | "published"
+      serp_result_type:
+        | "organic"
+        | "featured_snippet"
+        | "people_also_ask"
+        | "video"
+        | "local"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +417,25 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      content_status: ["outline", "draft", "review", "final", "published"],
+      keyword_source_type: [
+        "main",
+        "related",
+        "suggestion",
+        "idea",
+        "autocomplete",
+        "subtopic",
+        "paa",
+      ],
+      keyword_status: ["pending", "analyzed", "content_created", "published"],
+      serp_result_type: [
+        "organic",
+        "featured_snippet",
+        "people_also_ask",
+        "video",
+        "local",
+      ],
+    },
   },
 } as const
