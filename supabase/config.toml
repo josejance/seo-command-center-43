@@ -1,1 +1,19 @@
 project_id = "ypnzbiwimchmcdwkzdfg"
+
+[functions.research-serp]
+verify_jwt = false
+
+[functions.research-related]
+verify_jwt = false
+
+[functions.research-suggestions]
+verify_jwt = false
+
+[functions.research-ideas]
+verify_jwt = false
+
+[functions.research-autocomplete]
+verify_jwt = false
+
+[functions.research-subtopics]
+verify_jwt = false
