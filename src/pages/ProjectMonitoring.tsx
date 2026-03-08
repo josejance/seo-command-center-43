@@ -14,10 +14,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import {
   ArrowLeft, ArrowUp, ArrowDown, Minus, Loader2, Activity, TrendingUp, TrendingDown,
-  Clock, DollarSign, RefreshCw, AlertTriangle, ChevronDown, CalendarIcon, GitCompareArrows
+  Clock, DollarSign, RefreshCw, AlertTriangle, ChevronDown, CalendarIcon, GitCompareArrows, HeartCrack
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import ContentDecaySection from '@/components/monitoring/ContentDecaySection';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { Calendar } from '@/components/ui/calendar';
@@ -238,8 +239,9 @@ export default function ProjectMonitoring() {
       </div>
 
       <Tabs defaultValue="rankings">
-        <TabsList>
+        <TabsList className="flex flex-wrap h-auto gap-1">
           <TabsTrigger value="rankings">Rank Tracker</TabsTrigger>
+          <TabsTrigger value="decay" className="flex items-center gap-1.5"><HeartCrack className="h-3.5 w-3.5" />Content Decay</TabsTrigger>
           <TabsTrigger value="config">Configuração</TabsTrigger>
           <TabsTrigger value="alerts">Alertas ({alerts.filter(a => !a.read).length})</TabsTrigger>
           <TabsTrigger value="history">Histórico</TabsTrigger>
@@ -319,6 +321,11 @@ export default function ProjectMonitoring() {
               </CardContent>
             </Card>
           )}
+        </TabsContent>
+
+        {/* CONTENT DECAY */}
+        <TabsContent value="decay" className="mt-4">
+          <ContentDecaySection projectId={id!} keywords={keywords} rankData={rankData} />
         </TabsContent>
 
         {/* CONFIG */}

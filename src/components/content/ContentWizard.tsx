@@ -5,7 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Loader2, ChevronRight, ChevronLeft, Sparkles } from 'lucide-react';
+import { Loader2, ChevronRight, ChevronLeft, Sparkles, FileText, Globe, Download } from 'lucide-react';
 import { toast } from 'sonner';
 import ContentEditor from './ContentEditor';
 import SeoChecklist from './SeoChecklist';
@@ -83,6 +83,9 @@ export default function ContentWizard({ projectId, onDone, editingPieceId }: Pro
   const [loadingDraft, setLoadingDraft] = useState(false);
   const [seoScore, setSeoScore] = useState(0);
   const [contentPieceId, setContentPieceId] = useState<string | null>(editingPieceId ?? null);
+  const [loadingBriefing, setLoadingBriefing] = useState(false);
+  const [briefing, setBriefing] = useState('');
+  const [publishingWp, setPublishingWp] = useState(false);
 
   useEffect(() => {
     const load = async () => {
@@ -238,6 +241,72 @@ export default function ContentWizard({ projectId, onDone, editingPieceId }: Pro
       toast.success('Conteúdo finalizado!');
     }
     onDone();
+  };
+
+  const handleGenerateBriefing = async () => {
+    if (!selectedKeyword) return;
+    setLoadingBriefing(true);
+    try {
+      const secondaryKws = keywords.filter(k => secondaryIds.has(k.id)).map(k => k.keyword);
+      const { data, error } = await supabase.functions.invoke('generate-briefing', {
+        body: {
+          keyword: selectedKeyword.keyword,
+          search_volume: selectedKeyword.search_volume,
+          keyword_difficulty: selectedKeyword.keyword_difficulty,
+          search_intent: selectedKeyword.search_intent,
+          secondary_keywords: secondaryKws,
+          paa_questions: paaQuestions.map(p => p.title).filter(Boolean),
+          outline,
+          serp_results: topSerp.map(r => ({ title: r.title, description: r.description })),
+        },
+      });
+      if (error) throw error;
+      if (data?.briefing) {
+        setBriefing(data.briefing);
+        toast.success('Briefing gerado!');
+        // Auto-download
+        const blob = new Blob([data.briefing], { type: 'text/markdown' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `briefing-${selectedKeyword.keyword.replace(/\s+/g, '-')}.md`;
+        a.click();
+        URL.revokeObjectURL(url);
+      }
+    } catch (e: any) {
+      toast.error(e.message || 'Erro ao gerar briefing');
+    }
+    setLoadingBriefing(false);
+  };
+
+  const handlePublishWordPress = async () => {
+    if (!draft || !contentPieceId) return;
+    setPublishingWp(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('publish-wordpress', {
+        body: {
+          content_piece_id: contentPieceId,
+          title: outline?.title ?? selectedKeyword?.keyword ?? 'Untitled',
+          content: draft,
+          status: 'draft',
+        },
+      });
+      if (error) throw error;
+      if (data?.success) {
+        toast.success(
+          <div>
+            <p>Publicado no WordPress!</p>
+            {data.post_url && <a href={data.post_url} target="_blank" rel="noopener noreferrer" className="text-primary underline text-sm">Ver post →</a>}
+          </div>
+        );
+        if (contentPieceId) {
+          await supabase.from('content_pieces').update({ status: 'published' as const }).eq('id', contentPieceId);
+        }
+      }
+    } catch (e: any) {
+      toast.error(e.message || 'Erro ao publicar no WordPress');
+    }
+    setPublishingWp(false);
   };
 
   return (
@@ -511,13 +580,23 @@ export default function ContentWizard({ projectId, onDone, editingPieceId }: Pro
             </div>
           </div>
 
-          <div className="flex justify-between">
+          <div className="flex justify-between flex-wrap gap-2">
             <Button variant="outline" onClick={() => setStep(3)}>
               <ChevronLeft className="mr-2 h-4 w-4" /> Voltar
             </Button>
-            <Button onClick={handleFinalize} className="gradient-primary text-primary-foreground">
-              Finalizar Conteúdo
-            </Button>
+            <div className="flex gap-2 flex-wrap">
+              <Button variant="outline" onClick={handleGenerateBriefing} disabled={loadingBriefing}>
+                {loadingBriefing ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <FileText className="mr-2 h-4 w-4" />}
+                Gerar Briefing
+              </Button>
+              <Button variant="outline" onClick={handlePublishWordPress} disabled={publishingWp || !draft}>
+                {publishingWp ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Globe className="mr-2 h-4 w-4" />}
+                Publicar no WordPress
+              </Button>
+              <Button onClick={handleFinalize} className="gradient-primary text-primary-foreground">
+                Finalizar Conteúdo
+              </Button>
+            </div>
           </div>
         </div>
       )}

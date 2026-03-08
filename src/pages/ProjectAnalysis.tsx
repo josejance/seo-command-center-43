@@ -4,11 +4,13 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { ArrowLeft, Layers, AlertTriangle, Globe, Map } from 'lucide-react';
+import { ArrowLeft, Layers, AlertTriangle, Globe, Map, Network, Brain } from 'lucide-react';
 import ClusteringSection from '@/components/analysis/ClusteringSection';
 import ContentGapSection from '@/components/analysis/ContentGapSection';
 import CompetitorSection from '@/components/analysis/CompetitorSection';
 import IntentMapSection from '@/components/analysis/IntentMapSection';
+import SemanticMap from '@/components/analysis/SemanticMap';
+import SeoScorePredictor from '@/components/analysis/SeoScorePredictor';
 import SeoGlossary from '@/components/analysis/SeoGlossary';
 import { toast } from 'sonner';
 
@@ -20,6 +22,7 @@ interface Keyword {
   cpc: number | null;
   search_intent: string | null;
   source_type: string;
+  parent_keyword_id: string | null;
 }
 
 interface SerpResult {
@@ -53,19 +56,22 @@ export default function ProjectAnalysis() {
   const loadData = useCallback(async () => {
     if (!user || !projectId) return;
 
-    const [projectRes, kwRes, serpRes, clusterRes] = await Promise.all([
+    const [projectRes, kwRes, clusterRes] = await Promise.all([
       supabase.from('projects').select('name').eq('id', projectId).single(),
       supabase.from('keywords').select('*').eq('project_id', projectId).order('search_volume', { ascending: false, nullsFirst: false }),
-      supabase.from('serp_results').select('*').in(
-        'keyword_id',
-        (await supabase.from('keywords').select('id').eq('project_id', projectId)).data?.map(k => k.id) ?? []
-      ),
       supabase.from('keyword_clusters').select('*').eq('project_id', projectId),
     ]);
 
     if (projectRes.data) setProjectName(projectRes.data.name);
-    setKeywords((kwRes.data ?? []) as unknown as Keyword[]);
-    setSerpResults((serpRes.data ?? []) as unknown as SerpResult[]);
+    const kws = (kwRes.data ?? []) as unknown as Keyword[];
+    setKeywords(kws);
+
+    const kwIds = kws.map(k => k.id);
+    if (kwIds.length > 0) {
+      const { data: serpData } = await supabase.from('serp_results').select('*').in('keyword_id', kwIds);
+      setSerpResults((serpData ?? []) as unknown as SerpResult[]);
+    }
+
     setClusters((clusterRes.data ?? []).map(c => ({
       ...c,
       keyword_ids: (c.keyword_ids as string[]) ?? [],
@@ -100,10 +106,18 @@ export default function ProjectAnalysis() {
       </div>
 
       <Tabs defaultValue="clustering">
-        <TabsList className="grid grid-cols-4 w-full max-w-2xl">
+        <TabsList className="flex flex-wrap h-auto gap-1">
           <TabsTrigger value="clustering" className="flex items-center gap-1.5 text-xs sm:text-sm">
             <Layers className="h-3.5 w-3.5" />
             <span className="hidden sm:inline">Clusters</span>
+          </TabsTrigger>
+          <TabsTrigger value="semantic-map" className="flex items-center gap-1.5 text-xs sm:text-sm">
+            <Network className="h-3.5 w-3.5" />
+            <span className="hidden sm:inline">Mapa Semântico</span>
+          </TabsTrigger>
+          <TabsTrigger value="seo-predict" className="flex items-center gap-1.5 text-xs sm:text-sm">
+            <Brain className="h-3.5 w-3.5" />
+            <span className="hidden sm:inline">Score Preditivo</span>
           </TabsTrigger>
           <TabsTrigger value="content-gap" className="flex items-center gap-1.5 text-xs sm:text-sm">
             <AlertTriangle className="h-3.5 w-3.5" />
@@ -126,6 +140,14 @@ export default function ProjectAnalysis() {
             clusters={clusters}
             onClustersUpdated={loadData}
           />
+        </TabsContent>
+
+        <TabsContent value="semantic-map" className="mt-6">
+          <SemanticMap keywords={keywords} />
+        </TabsContent>
+
+        <TabsContent value="seo-predict" className="mt-6">
+          <SeoScorePredictor keywords={keywords} serpResults={serpResults} projectId={projectId!} />
         </TabsContent>
 
         <TabsContent value="content-gap" className="mt-6">

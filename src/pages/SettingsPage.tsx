@@ -129,6 +129,14 @@ export default function SettingsPage() {
   const debounceRef = useRef<ReturnType<typeof setTimeout>>();
   const dropdownRef = useRef<HTMLDivElement>(null);
 
+  // WordPress
+  const [wpUrl, setWpUrl] = useState('');
+  const [wpUsername, setWpUsername] = useState('');
+  const [wpAppPassword, setWpAppPassword] = useState('');
+  const [savingWp, setSavingWp] = useState(false);
+  const [testingWp, setTestingWp] = useState(false);
+  const [wpStatus, setWpStatus] = useState<'idle' | 'connected' | 'error'>('idle');
+
   // Usage
   const [usageData, setUsageData] = useState<{ month: string; credits: number; cost: number }[]>([]);
   const [totalCredits, setTotalCredits] = useState(0);
@@ -207,6 +215,9 @@ export default function SettingsPage() {
     // Check API statuses
     if (settings.dataforseo_login && settings.dataforseo_password) setApiStatus(p => ({ ...p, dataforseo: 'connected' }));
     if (settings.claude_api_key) setApiStatus(p => ({ ...p, claude: 'connected' }));
+    if (settings.wordpress_url) setWpUrl(settings.wordpress_url);
+    if (settings.wordpress_username) setWpUsername(settings.wordpress_username);
+    if (settings.wordpress_app_password) { setWpAppPassword(settings.wordpress_app_password); setWpStatus('connected'); }
 
     // Usage data
     const history = historyRes.data ?? [];
@@ -438,6 +449,7 @@ export default function SettingsPage() {
           <TabsTrigger value="api" className="gap-1.5"><Key className="h-3.5 w-3.5" />API Keys</TabsTrigger>
           <TabsTrigger value="domains" className="gap-1.5"><Globe className="h-3.5 w-3.5" />Domínios</TabsTrigger>
           <TabsTrigger value="research" className="gap-1.5"><BarChart3 className="h-3.5 w-3.5" />Pesquisa</TabsTrigger>
+          <TabsTrigger value="wordpress" className="gap-1.5"><Globe className="h-3.5 w-3.5" />WordPress</TabsTrigger>
           <TabsTrigger value="webhooks" className="gap-1.5"><Webhook className="h-3.5 w-3.5" />Webhooks</TabsTrigger>
           <TabsTrigger value="theme" className="gap-1.5"><Palette className="h-3.5 w-3.5" />Tema</TabsTrigger>
           <TabsTrigger value="ai" className="gap-1.5"><Bot className="h-3.5 w-3.5" />Modelo IA</TabsTrigger>
@@ -677,6 +689,70 @@ export default function SettingsPage() {
               <Button onClick={saveResearchDefaults} className="gradient-primary text-primary-foreground">
                 Salvar Padrões
               </Button>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* WORDPRESS */}
+        <TabsContent value="wordpress">
+          <Card className="bg-card border-border/50">
+            <CardHeader>
+              <CardTitle className="flex items-center justify-between">
+                WordPress
+                {wpStatus === 'connected' ? (
+                  <Badge variant="outline" className="text-chart-3 border-chart-3/30"><CheckCircle2 className="h-3 w-3 mr-1" />Conectado</Badge>
+                ) : wpStatus === 'error' ? (
+                  <Badge variant="outline" className="text-destructive border-destructive/30"><XCircle className="h-3 w-3 mr-1" />Erro</Badge>
+                ) : (
+                  <Badge variant="outline" className="text-muted-foreground">Não configurado</Badge>
+                )}
+              </CardTitle>
+              <CardDescription>Configure a integração com WordPress para publicar conteúdos diretamente</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-2">
+                <Label>URL do WordPress</Label>
+                <Input value={wpUrl} onChange={e => setWpUrl(e.target.value)} placeholder="https://meusite.com.br" />
+              </div>
+              <div className="space-y-2">
+                <Label>Username</Label>
+                <Input value={wpUsername} onChange={e => setWpUsername(e.target.value)} placeholder="admin" />
+              </div>
+              <div className="space-y-2">
+                <Label>Application Password</Label>
+                <Input type="password" value={wpAppPassword} onChange={e => setWpAppPassword(e.target.value)} placeholder="xxxx xxxx xxxx xxxx" />
+                <p className="text-xs text-muted-foreground">Gere em WordPress → Usuários → Perfil → Application Passwords</p>
+              </div>
+              <div className="flex gap-2">
+                <Button onClick={async () => {
+                  setSavingWp(true);
+                  await Promise.all([
+                    saveSetting('wordpress_url', wpUrl),
+                    saveSetting('wordpress_username', wpUsername),
+                    saveSetting('wordpress_app_password', wpAppPassword),
+                  ]);
+                  toast.success('WordPress configurado!');
+                  setSavingWp(false);
+                }} disabled={savingWp} className="gradient-primary text-primary-foreground">
+                  {savingWp ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+                  Salvar
+                </Button>
+                <Button variant="outline" onClick={async () => {
+                  if (!wpUrl || !wpUsername || !wpAppPassword) { toast.error('Preencha todos os campos'); return; }
+                  setTestingWp(true);
+                  try {
+                    const res = await fetch(`${wpUrl.replace(/\/$/, '')}/wp-json/wp/v2/posts?per_page=1`, {
+                      headers: { 'Authorization': 'Basic ' + btoa(`${wpUsername}:${wpAppPassword}`) },
+                    });
+                    if (res.ok) { setWpStatus('connected'); toast.success('WordPress conectado!'); }
+                    else { setWpStatus('error'); toast.error(`Erro: ${res.status}`); }
+                  } catch { setWpStatus('error'); toast.error('Erro ao conectar (verifique URL e CORS)'); }
+                  setTestingWp(false);
+                }} disabled={testingWp}>
+                  {testingWp ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Check className="mr-2 h-4 w-4" />}
+                  Testar Conexão
+                </Button>
+              </div>
             </CardContent>
           </Card>
         </TabsContent>
