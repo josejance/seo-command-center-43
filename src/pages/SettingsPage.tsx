@@ -215,6 +215,9 @@ export default function SettingsPage() {
     // Check API statuses
     if (settings.dataforseo_login && settings.dataforseo_password) setApiStatus(p => ({ ...p, dataforseo: 'connected' }));
     if (settings.claude_api_key) setApiStatus(p => ({ ...p, claude: 'connected' }));
+    if (settings.wordpress_url) setWpUrl(settings.wordpress_url);
+    if (settings.wordpress_username) setWpUsername(settings.wordpress_username);
+    if (settings.wordpress_app_password) { setWpAppPassword(settings.wordpress_app_password); setWpStatus('connected'); }
 
     // Usage data
     const history = historyRes.data ?? [];
