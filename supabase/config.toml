@@ -38,3 +38,15 @@ verify_jwt = false
 
 [functions.run-automation]
 verify_jwt = false
+
+[functions.detect-content-decay]
+verify_jwt = false
+
+[functions.generate-briefing]
+verify_jwt = false
+
+[functions.predict-seo-score]
+verify_jwt = false
+
+[functions.publish-wordpress]
+verify_jwt = false
