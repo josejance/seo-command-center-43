@@ -25,13 +25,13 @@ import {
 } from '@/components/ui/sidebar';
 
 const navItems = [
-  { title: 'Dashboard', url: '/dashboard', icon: LayoutDashboard },
-  { title: 'Projetos', url: '/projects', icon: FolderKanban },
-  { title: 'Pesquisa', url: '/research', icon: Search },
-  { title: 'Análise', url: '/analysis', icon: BarChart3 },
-  { title: 'Conteúdo', url: '/content', icon: FileText },
-  { title: 'Monitoramento', url: '/monitoring', icon: Activity },
-  { title: 'Configurações', url: '/settings', icon: Settings },
+  { title: 'Dashboard', url: '/dashboard', icon: LayoutDashboard, tour: 'dashboard' },
+  { title: 'Projetos', url: '/projects', icon: FolderKanban, tour: 'projects' },
+  { title: 'Pesquisa', url: '/research', icon: Search, tour: 'research' },
+  { title: 'Análise', url: '/analysis', icon: BarChart3, tour: 'analysis' },
+  { title: 'Conteúdo', url: '/content', icon: FileText, tour: 'content' },
+  { title: 'Monitoramento', url: '/monitoring', icon: Activity, tour: 'monitoring' },
+  { title: 'Configurações', url: '/settings', icon: Settings, tour: 'settings' },
 ];
 
 export function AppSidebar() {
@@ -57,7 +57,7 @@ export function AppSidebar() {
           <SidebarGroupContent>
             <SidebarMenu>
               {navItems.map((item) => (
-                <SidebarMenuItem key={item.title}>
+                <SidebarMenuItem key={item.title} data-tour={item.tour}>
                   <SidebarMenuButton asChild>
                     <NavLink
                       to={item.url}
