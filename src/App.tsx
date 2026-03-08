@@ -18,6 +18,7 @@ import ProjectAnalysis from "./pages/ProjectAnalysis";
 import Content from "./pages/Content";
 import ProjectContentStudio from "./pages/ProjectContentStudio";
 import Monitoring from "./pages/Monitoring";
+import ProjectMonitoring from "./pages/ProjectMonitoring";
 import SettingsPage from "./pages/SettingsPage";
 import NotFound from "./pages/NotFound";
 
@@ -52,6 +53,7 @@ const AppRoutes = () => (
     <Route path="/analysis" element={<ProtectedRoute><Analysis /></ProtectedRoute>} />
     <Route path="/projects/:id/content" element={<ProtectedRoute><ProjectContentStudio /></ProtectedRoute>} />
     <Route path="/content" element={<ProtectedRoute><Content /></ProtectedRoute>} />
+    <Route path="/projects/:id/monitor" element={<ProtectedRoute><ProjectMonitoring /></ProtectedRoute>} />
     <Route path="/monitoring" element={<ProtectedRoute><Monitoring /></ProtectedRoute>} />
     <Route path="/settings" element={<ProtectedRoute><SettingsPage /></ProtectedRoute>} />
     <Route path="*" element={<NotFound />} />

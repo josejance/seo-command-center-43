@@ -10,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Label } from '@/components/ui/label';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { ArrowLeft, Plus, Search, MapPin, Globe, Trash2, Rocket, Eye, BarChart3, FileText } from 'lucide-react';
+import { ArrowLeft, Plus, Search, MapPin, Globe, Trash2, Rocket, Eye, BarChart3, FileText, Activity } from 'lucide-react';
 import { toast } from 'sonner';
 
 type SourceType = 'main' | 'related' | 'suggestion' | 'idea' | 'autocomplete' | 'subtopic' | 'paa';
@@ -110,6 +110,9 @@ export default function ProjectDetail() {
           </div>
         </div>
         <div className="flex gap-2">
+          <Button variant="outline" onClick={() => navigate(`/projects/${project.id}/monitor`)}>
+            <Activity className="mr-2 h-4 w-4" />Monitoramento
+          </Button>
           <Button variant="outline" onClick={() => navigate(`/projects/${project.id}/content`)}>
             <FileText className="mr-2 h-4 w-4" />Content Studio
           </Button>
