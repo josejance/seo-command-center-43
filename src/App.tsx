@@ -12,6 +12,7 @@ import Projects from "./pages/Projects";
 import ProjectDetail from "./pages/ProjectDetail";
 import Research from "./pages/Research";
 import ProjectResearch from "./pages/ProjectResearch";
+import ResearchResults from "./pages/ResearchResults";
 import Analysis from "./pages/Analysis";
 import Content from "./pages/Content";
 import Monitoring from "./pages/Monitoring";
