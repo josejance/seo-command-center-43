@@ -693,6 +693,70 @@ export default function SettingsPage() {
           </Card>
         </TabsContent>
 
+        {/* WORDPRESS */}
+        <TabsContent value="wordpress">
+          <Card className="bg-card border-border/50">
+            <CardHeader>
+              <CardTitle className="flex items-center justify-between">
+                WordPress
+                {wpStatus === 'connected' ? (
+                  <Badge variant="outline" className="text-chart-3 border-chart-3/30"><CheckCircle2 className="h-3 w-3 mr-1" />Conectado</Badge>
+                ) : wpStatus === 'error' ? (
+                  <Badge variant="outline" className="text-destructive border-destructive/30"><XCircle className="h-3 w-3 mr-1" />Erro</Badge>
+                ) : (
+                  <Badge variant="outline" className="text-muted-foreground">Não configurado</Badge>
+                )}
+              </CardTitle>
+              <CardDescription>Configure a integração com WordPress para publicar conteúdos diretamente</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-2">
+                <Label>URL do WordPress</Label>
+                <Input value={wpUrl} onChange={e => setWpUrl(e.target.value)} placeholder="https://meusite.com.br" />
+              </div>
+              <div className="space-y-2">
+                <Label>Username</Label>
+                <Input value={wpUsername} onChange={e => setWpUsername(e.target.value)} placeholder="admin" />
+              </div>
+              <div className="space-y-2">
+                <Label>Application Password</Label>
+                <Input type="password" value={wpAppPassword} onChange={e => setWpAppPassword(e.target.value)} placeholder="xxxx xxxx xxxx xxxx" />
+                <p className="text-xs text-muted-foreground">Gere em WordPress → Usuários → Perfil → Application Passwords</p>
+              </div>
+              <div className="flex gap-2">
+                <Button onClick={async () => {
+                  setSavingWp(true);
+                  await Promise.all([
+                    saveSetting('wordpress_url', wpUrl),
+                    saveSetting('wordpress_username', wpUsername),
+                    saveSetting('wordpress_app_password', wpAppPassword),
+                  ]);
+                  toast.success('WordPress configurado!');
+                  setSavingWp(false);
+                }} disabled={savingWp} className="gradient-primary text-primary-foreground">
+                  {savingWp ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+                  Salvar
+                </Button>
+                <Button variant="outline" onClick={async () => {
+                  if (!wpUrl || !wpUsername || !wpAppPassword) { toast.error('Preencha todos os campos'); return; }
+                  setTestingWp(true);
+                  try {
+                    const res = await fetch(`${wpUrl.replace(/\/$/, '')}/wp-json/wp/v2/posts?per_page=1`, {
+                      headers: { 'Authorization': 'Basic ' + btoa(`${wpUsername}:${wpAppPassword}`) },
+                    });
+                    if (res.ok) { setWpStatus('connected'); toast.success('WordPress conectado!'); }
+                    else { setWpStatus('error'); toast.error(`Erro: ${res.status}`); }
+                  } catch { setWpStatus('error'); toast.error('Erro ao conectar (verifique URL e CORS)'); }
+                  setTestingWp(false);
+                }} disabled={testingWp}>
+                  {testingWp ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Check className="mr-2 h-4 w-4" />}
+                  Testar Conexão
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
         {/* WEBHOOKS */}
         <TabsContent value="webhooks">
           <Card className="bg-card border-border/50">
