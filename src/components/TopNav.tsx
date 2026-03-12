@@ -123,9 +123,11 @@ export function TopNav() {
             'text-muted-foreground hover:text-foreground hover:bg-muted/50'
           )
           }>
-          
-              <item.icon className="h-4 w-4" />
-              <span>{item.title}</span>
+              <item.icon className="h-4 w-4 shrink-0" />
+              <div className="flex flex-col">
+                <span>{item.title}</span>
+                <span className="text-[10px] text-muted-foreground font-normal">{item.desc}</span>
+              </div>
             </NavLink>
         )}
           <button
