@@ -3,7 +3,7 @@ import { LayoutDashboard, FolderKanban, Search, Settings } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const items = [
-  { to: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
+  { to: '/dashboard', icon: LayoutDashboard, label: 'Painel' },
   { to: '/projects', icon: FolderKanban, label: 'Projetos' },
   { to: '/research', icon: Search, label: 'Pesquisa' },
   { to: '/settings', icon: Settings, label: 'Config' },

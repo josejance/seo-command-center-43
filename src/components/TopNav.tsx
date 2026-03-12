@@ -9,8 +9,8 @@ import {
   Settings,
   LogOut,
   Menu,
-  X } from
-'lucide-react';
+  X,
+} from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { cn } from '@/lib/utils';
 import { useState } from 'react';
@@ -18,13 +18,14 @@ import { useIsMobile } from '@/hooks/use-mobile';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 
 const navItems = [
-{ title: 'Dashboard', url: '/dashboard', icon: LayoutDashboard },
-{ title: 'Projetos', url: '/projects', icon: FolderKanban },
-{ title: 'Pesquisa', url: '/research', icon: Search },
-{ title: 'Análise', url: '/analysis', icon: BarChart3 },
-{ title: 'Conteúdo', url: '/content', icon: FileText },
-{ title: 'Monitor', url: '/monitoring', icon: Activity },
-{ title: 'Config', url: '/settings', icon: Settings }];
+  { title: 'Painel', url: '/dashboard', icon: LayoutDashboard, desc: 'Visão geral de métricas e desempenho' },
+  { title: 'Projetos', url: '/projects', icon: FolderKanban, desc: 'Gerencie seus sites e campanhas SEO' },
+  { title: 'Pesquisa', url: '/research', icon: Search, desc: 'Descubra palavras-chave e oportunidades' },
+  { title: 'Análise', url: '/analysis', icon: BarChart3, desc: 'Analise resultados de busca e concorrência' },
+  { title: 'Conteúdo', url: '/content', icon: FileText, desc: 'Crie e otimize artigos para SEO' },
+  { title: 'Monitoramento', url: '/monitoring', icon: Activity, desc: 'Acompanhe posições e alertas em tempo real' },
+  { title: 'Configurações', url: '/settings', icon: Settings, desc: 'Ajuste preferências e integrações' },
+];
 
 
 export function TopNav() {
