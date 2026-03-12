@@ -16,6 +16,7 @@ import { cn } from '@/lib/utils';
 import { useState } from 'react';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import { HelpGuide } from '@/components/HelpGuide';
 
 const navItems = [
   { title: 'Painel', url: '/dashboard', icon: LayoutDashboard, desc: 'Visão geral de métricas e desempenho' },
@@ -79,7 +80,8 @@ export function TopNav() {
         {isMobile && <div className="flex-1" />}
 
         {/* Right side */}
-        <div className="flex items-center gap-1.5 shrink-0">
+        <div className="flex items-center gap-1 shrink-0">
+          <HelpGuide />
           {!isMobile &&
           <>
               <span className="text-xs text-muted-foreground hidden xl:block max-w-[140px] truncate">{user?.email}</span>
