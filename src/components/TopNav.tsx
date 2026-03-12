@@ -66,8 +66,9 @@ export function TopNav() {
                     <span className="hidden xl:inline">{item.title}</span>
                   </NavLink>
                 </TooltipTrigger>
-                <TooltipContent side="bottom" className="xl:hidden">
-                  {item.title}
+                <TooltipContent side="bottom">
+                  <p className="font-medium">{item.title}</p>
+                  <p className="text-[10px] text-muted-foreground">{item.desc}</p>
                 </TooltipContent>
               </Tooltip>
           )}
